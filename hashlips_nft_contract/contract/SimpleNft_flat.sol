@@ -1235,24 +1235,20 @@ pragma solidity >=0.7.0 <0.9.0;
 contract TestHashlipsNFT is ERC721Enumerable, Ownable {
   using Strings for uint256;
 
-  string baseURI;
+  string baseURI = "ipfs://QmaZpT2ySq7XNauuRSopbbuMnyjw1AvRLBCjjvt3PTHbLT/";
   string public baseExtension = ".json";
   uint256 public cost = 5000000000000000;
-  uint256 public maxSupply = 10;
-  uint256 public maxMintAmount = 2;
+  uint256 public maxSupply = 100;
+  uint256 public maxMintAmount = 4;
+  uint256 public nftPerAddressLimit = 3;
   bool public paused = false;
   bool public revealed = true;
-  string public notRevealedUri;
+  string public notRevealedUri = "ipfs://QmaZpT2ySq7XNauuRSopbbuMnyjw1AvRLBCjjvt3PTHbLT/";
+  bool public onlyWhitelisted = true;
+  mapping(address => uint256) public whitelistUserAmount;
+  mapping(address => uint256) public whitelistMintedAmount;
 
-  constructor(
-    string memory _name,
-    string memory _symbol,
-    string memory _initBaseURI,
-    string memory _initNotRevealedUri
-  ) ERC721(_name, _symbol) {
-    setBaseURI(_initBaseURI);
-    setNotRevealedURI(_initNotRevealedUri);
-  }
+  constructor() ERC721("TestHashlips", "THN") {}
 
   // internal
   function _baseURI() internal view virtual override returns (string memory) {
@@ -1261,20 +1257,37 @@ contract TestHashlipsNFT is ERC721Enumerable, Ownable {
 
   // public
   function mint(uint256 _mintAmount) public payable {
+    require(!paused, "the contract is paused");
     uint256 supply = totalSupply();
-    require(!paused);
-    require(_mintAmount > 0);
-    require(_mintAmount <= maxMintAmount);
-    require(supply + _mintAmount <= maxSupply);
+    require(_mintAmount > 0, "need to mint at least 1 NFT");
+    require(_mintAmount <= maxMintAmount, "max mint amount per session exceeded");
+    require(supply + _mintAmount <= maxSupply, "max NFT limit exceeded");
 
+    // Owner also can mint.
     if (msg.sender != owner()) {
-      require(msg.value >= cost * _mintAmount);
+        if(onlyWhitelisted == true) {
+            require(whitelistUserAmount[msg.sender] != 0, "user is not whitelisted");
+            require(whitelistMintedAmount[msg.sender] + _mintAmount <= whitelistUserAmount[msg.sender], "max NFT per address exceeded");
+        }
+        require(msg.value >= cost * _mintAmount, "insufficient funds");
     }
 
     for (uint256 i = 1; i <= _mintAmount; i++) {
+        whitelistMintedAmount[msg.sender]++;
       _safeMint(msg.sender, supply + i);
     }
   }
+
+  function setOnlyWhitelisted(bool _state) public onlyOwner {
+    onlyWhitelisted = _state;
+  }
+
+    function setWhitelist(address[] memory addresses, uint256[] memory saleSupplies) public onlyOwner {
+        require(addresses.length == saleSupplies.length);
+        for (uint256 i = 0; i < addresses.length; i++) {
+            whitelistUserAmount[addresses[i]] = saleSupplies[i];
+        }
+    }
 
   function walletOfOwner(address _owner)
     public
