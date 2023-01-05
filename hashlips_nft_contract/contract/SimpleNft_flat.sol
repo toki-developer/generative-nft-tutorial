@@ -8,8 +8,8 @@
     how to create smart contracts on the blockchain.
     please review this code on your own before using any of
     the following code for production.
-    HashLips will not be liable in any way if for the use 
-    of the code. That being said, the code has been tested 
+    HashLips will not be liable in any way if for the use
+    of the code. That being said, the code has been tested
     to the best of the developers' knowledge to work as intended.
 */
 
@@ -1232,16 +1232,16 @@ abstract contract Ownable is Context {
 
 pragma solidity >=0.7.0 <0.9.0;
 
-contract NFT is ERC721Enumerable, Ownable {
+contract TestHashlipsNFT is ERC721Enumerable, Ownable {
   using Strings for uint256;
 
   string baseURI;
   string public baseExtension = ".json";
-  uint256 public cost = 0.05 ether;
-  uint256 public maxSupply = 10000;
-  uint256 public maxMintAmount = 20;
+  uint256 public cost = 5000000000000000;
+  uint256 public maxSupply = 10;
+  uint256 public maxMintAmount = 2;
   bool public paused = false;
-  bool public revealed = false;
+  bool public revealed = true;
   string public notRevealedUri;
 
   constructor(
@@ -1300,7 +1300,7 @@ contract NFT is ERC721Enumerable, Ownable {
       _exists(tokenId),
       "ERC721Metadata: URI query for nonexistent token"
     );
-    
+
     if(revealed == false) {
         return notRevealedUri;
     }
@@ -1315,7 +1315,7 @@ contract NFT is ERC721Enumerable, Ownable {
   function reveal() public onlyOwner {
       revealed = true;
   }
-  
+
   function setCost(uint256 _newCost) public onlyOwner {
     cost = _newCost;
   }
@@ -1323,7 +1323,7 @@ contract NFT is ERC721Enumerable, Ownable {
   function setmaxMintAmount(uint256 _newmaxMintAmount) public onlyOwner {
     maxMintAmount = _newmaxMintAmount;
   }
-  
+
   function setNotRevealedURI(string memory _notRevealedURI) public onlyOwner {
     notRevealedUri = _notRevealedURI;
   }
@@ -1339,15 +1339,15 @@ contract NFT is ERC721Enumerable, Ownable {
   function pause(bool _state) public onlyOwner {
     paused = _state;
   }
- 
+
   function withdraw() public payable onlyOwner {
     // This will pay HashLips 5% of the initial sale.
     // You can remove this if you want, or keep it in to support HashLips and his channel.
     // =============================================================================
-    (bool hs, ) = payable(0x943590A42C27D08e3744202c4Ae5eD55c2dE240D).call{value: address(this).balance * 5 / 100}("");
-    require(hs);
+    // (bool hs, ) = payable(0x943590A42C27D08e3744202c4Ae5eD55c2dE240D).call{value: address(this).balance * 5 / 100}("");
+    // require(hs);
     // =============================================================================
-    
+
     // This will payout the owner 95% of the contract balance.
     // Do not remove this otherwise you will not be able to withdraw the funds.
     // =============================================================================
